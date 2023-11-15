@@ -141,7 +141,9 @@ export function createFiberRoot(
   onRecoverableError: null | ((error: mixed) => void),
   transitionCallbacks: null | TransitionTracingCallbacks,
 ): FiberRoot {
+  console.group('createFiberRoot: 创建FiberRoot和RootFiberNode')
   console.log('createFiberRoot参数(containerInfo, tag, hydrate, initialChildren, hydrationCallbacks, concurrentUpdatesByDefaultOverride, identifierPrefix, onRecoverableError, transitionCallbacks)', containerInfo, tag, hydrate, initialChildren, hydrationCallbacks, concurrentUpdatesByDefaultOverride, identifierPrefix, onRecoverableError, transitionCallbacks)
+  console.log('创建应用里面唯一的一个FiberRoot，保存着构建需要的状态如tag')
   const root: FiberRoot = (new FiberRootNode(
     containerInfo,
     tag,
@@ -159,8 +161,7 @@ export function createFiberRoot(
 
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
-  console.log('createFiberRoot内还会创建一个HostRootFiber，FiberRoot.current会指向这个HostRootFiber')
-  console.log('FiberRoot.current是当前页面的虚拟DOM，在页面更新时候FiberRoot会切换current为完成Diff算法的fiber以达到页面更新')
+  console.log('createFiberRoot内还会创建一个HostRootFiber，FiberRoot.current会指向这个HostRootFiber，FiberRoot.current是当前页面的虚拟DOM，在页面更新时候FiberRoot会切换current为完成Diff算法的fiber以达到页面更新；第一个fiber对象，mode决定了fiber树的模式')
   const uninitializedFiber = createHostRootFiber(
     tag,
     isStrictMode,
@@ -168,7 +169,6 @@ export function createFiberRoot(
   );
   root.current = uninitializedFiber;
   uninitializedFiber.stateNode = root;
-  console.log('HostRootFiber.stateNode指向FiberRoot，在diff算法节点复用时候会用到')
   if (enableCache) {
     const initialCache = createCache();
     retainCache(initialCache);
@@ -199,13 +199,8 @@ export function createFiberRoot(
     uninitializedFiber.memoizedState = initialState;
   }
   console.log('创建完HostRootFiber后会先初始化它的memoizedState也就是状态')
-  console.warn('FiberRoot和HostRootFiber对应结构',root, uninitializedFiber)
-  console.error(`简单介绍下FiberNode中的一些数据结构，因为react在运行时候会存在两棵Fiber树，
-  一棵树是当先页面展示的树可以把它理解成current tree，另外一棵是当组件状态发生改变时候会形成一颗workInProgress tree，
-  这也是进行diff时候的两棵树。这两棵树通过alternate属性相互指向。
-  fiber.return代表父元素，fiber.tag代表组件类型(函数组件，类组件，空标签原生dom等)
-  fiber.lanes代表优先级，fiber.memoizedProps代表上一次的props，fiber.memoizedState代表上一次的组件状态
-  fiber.sibling代表兄弟节点，带lanes都是和优先级相关`)
+  console.log('创建完FiberRoot和HostRootFiber对应结构',root, uninitializedFiber)
   initializeUpdateQueue(uninitializedFiber);
+  console.groupEnd()
   return root;
 }
