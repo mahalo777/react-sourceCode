@@ -388,7 +388,7 @@ const listeningMarker =
     .slice(2);
 
 export function listenToAllSupportedEvents(rootContainerElement: EventTarget) {//事件注册
-  console.group('listenToAllSupportedEvents 事件委托')
+  console.groupCollapsed('listenToAllSupportedEvents 事件委托')
   console.log(`这里先总结下React的事件，初始化时候React会把所有的浏览器事件绑定到传入的container上面，绑定的事件是一个带有优先级包装过的listener。如果传入的是注释标签就绑定在它父元素上面，
   并且定义一个map映射表，把原生事件和react事件相对应，当触发一个事件的时候实际是触发初始化时候绑定的listener，执行这个listener时会从触发的target向上到root递归收集相同react事件，
   放在一个listeners数组中，React事件函数是通过优先级封装了一层，每个React事件有着不同的优先级，不同事件对应不同优先级，也对应着不同的事件对象syntheticBaseEvent，把收集到的事件通过batchUpdate触发事件`)

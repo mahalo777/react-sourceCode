@@ -141,7 +141,7 @@ export function createFiberRoot(
   onRecoverableError: null | ((error: mixed) => void),
   transitionCallbacks: null | TransitionTracingCallbacks,
 ): FiberRoot {
-  console.group('createFiberRoot: 创建FiberRoot和RootFiberNode')
+  console.groupCollapsed('createFiberRoot: 创建FiberRoot和RootFiberNode')
   console.log('createFiberRoot参数(containerInfo, tag, hydrate, initialChildren, hydrationCallbacks, concurrentUpdatesByDefaultOverride, identifierPrefix, onRecoverableError, transitionCallbacks)', containerInfo, tag, hydrate, initialChildren, hydrationCallbacks, concurrentUpdatesByDefaultOverride, identifierPrefix, onRecoverableError, transitionCallbacks)
   console.log('创建应用里面唯一的一个FiberRoot，保存着构建需要的状态如tag')
   const root: FiberRoot = (new FiberRootNode(

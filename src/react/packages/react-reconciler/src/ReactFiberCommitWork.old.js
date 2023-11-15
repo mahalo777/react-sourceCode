@@ -2355,7 +2355,7 @@ export function commitLayoutEffects(
   root: FiberRoot,
   committedLanes: Lanes,
 ): void {
-  console.log('log: commitLayoutEffects layouteffect副作用函数是在commit阶段同步执行的，而useeffect副作用函数是通过ensureRootIsScheduled调度执行, 副作用函数都是在dom突变之后执行')
+  console.log('commitLayoutEffects - log: commitLayoutEffects layouteffect副作用函数是在commit阶段同步执行的，而useeffect副作用函数是通过ensureRootIsScheduled调度执行, 副作用函数都是在dom突变之后执行')
   inProgressLanes = committedLanes;
   inProgressRoot = root;
   nextEffect = finishedWork;

@@ -188,7 +188,8 @@ function flushWork(hasTimeRemaining, initialTime) {
 }
 let work = 0
 function workLoop(hasTimeRemaining, initialTime) { // 
-  work === 0 && console.error(`
+  console.group('workLoop')
+  work === 0 && console.warn(`
     在scheduler调度中通过workLoop循环taskQueue执行调度任务。
     workLoop首先会检查timerQueue中有没有要过期的任务加入到taskQueue中。
     取出task中的调度任务，判断当前任务执行的时间是否超过一帧渲染的时间和用户是否与界面有交互来判断是否应该中断当前任务。
@@ -196,6 +197,7 @@ function workLoop(hasTimeRemaining, initialTime) { //
     如果任务在执行过程中被中断就会把react任务返回的回调函数作为当前调度的新任务。没有在执行中被中断的话就会执行完成以后从task队列中删除任务
     当task队列中的任务执行完以后，会通过settimeout调度执行timer队列中的任务。
   `)
+  console.groupEnd();
   work = 1
   let currentTime = initialTime;
   //检查是否有过期任务需要添加到taskQueue中执行的
@@ -222,6 +224,7 @@ function workLoop(hasTimeRemaining, initialTime) { //
       if (enableProfiling) {
         markTaskRun(currentTask, currentTime);
       }
+      console.error('第六步：执行传入的调度任务，里就是react中performConcurrentWorkOnRoot函数的返回值')
       const continuationCallback = callback(didUserCallbackTimeout);// 这里就是react中performConcurrentWorkOnRoot函数的返回值
       console.log('task任务是否被中断*******************', continuationCallback ? true : false)
       currentTime = getCurrentTime();
@@ -258,6 +261,7 @@ function workLoop(hasTimeRemaining, initialTime) { //
     }
     return false;
   }
+  
 }
 
 function unstable_runWithPriority(priorityLevel, eventHandler) {
@@ -323,6 +327,7 @@ function unstable_wrapCallback(callback) {
 }
 let log = 0
 function unstable_scheduleCallback(priorityLevel, callback, options) { //这个函数是和react连接的桥梁 
+  console.warn('unstable_scheduleCallback 调度中心和react通信接口')
   var currentTime = getCurrentTime();
   var startTime;
   if (typeof options === 'object' && options !== null) {
@@ -368,18 +373,21 @@ function unstable_scheduleCallback(priorityLevel, callback, options) { //这个�
     newTask.isQueued = false;
   }
 
-  console.log(startTime, currentTime, timeout, priorityLevel,'******start current out level*****')                                                           //react请求调度执行performconcurrentworkonRoot
-  log === 0 && console.error(`
+  console.log('根据当前优先级、计算过期时间，并创建更新任务，包括:', startTime, currentTime, timeout, priorityLevel) 
+  //react请求调度执行 performconcurrentworkonRoot
+  console.groupCollapsed('scheduler scheduleCallback')
+  log === 0 && console.warn(`
   scheduler主要是用于react进行注册调度任务（更新和mounted等），他会根据你注册的任务是否是延时任务来执行不同的调度方式。
   如果是延时任务主要是通过settimeout来执行调度，需要立马执行的任务会先判断是否是node或ie环境如果是就使用setImmediate，如果不是就会判断支不支持MessageChannel如果支持就使用MessageChannel，如果不支持就使用settimeout兜底调度执行
   `)
-  log === 0 && console.error(`
+  log === 0 && console.warn(`
   scheduleCallback先通过performance.now获取当前时间，再根据注册调度的第三个参数配没有配置delay延迟时间，如果有那么当前调度任务的开始时间就是当前时间加上延迟时间，如果没有则任务调度时间就是当前时间。
   再通过开始时间和调度优先级计算出任务的过期时间，调度优先级0-5对应不同的时间段，1代表最高优先级对应-1ms，2代表用户行为优先级对应250ms，3代表普通对应5000ms，用开始时间加上调度优先级对应时间就是过期时间。
   scheduleCallback中有两个任务队列：timerQueue 和 taskQueue中，timer表示存那些可以延时的调度任务，task表示那些已过期的任务也就是需要马上执行的任务。
   再用开始时间和当前时间做对比，如果任务开始时间大于当前时间就会把当前调度任务放入timer中表示是一个延时调度，反之就会把任务放入task过期任务队列中。
   如果当前调度的任务是延时任务就会去检测，过期任务队列是否为空并且当前调度任务是最快要过期的任务，如果满足这两个条件就会检测是否还有调度任务在执行，有的话就终止然后通过settimeout开启新的调度执行。
   如果当前任务是过期任务需要立马执行的，就会检测当前是否有调度任务在执行，如果有就会把当前任务到调度中，如果没有就会通过MessageChannel开启新的调度执行`)
+  console.groupEnd();
   if (startTime > currentTime) {
     // This is a delayed task.
     // 延时任务
@@ -411,6 +419,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) { //这个�
     // 如果没有就会开启调度
     if (!isHostCallbackScheduled && !isPerformingWork) { //初始这两个都是false
       isHostCallbackScheduled = true;
+      console.error('开启一次新的调度： requestHostCallback(flushWork)')
       requestHostCallback(flushWork);
     }
   }

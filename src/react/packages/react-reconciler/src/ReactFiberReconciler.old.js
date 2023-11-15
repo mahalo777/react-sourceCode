@@ -326,6 +326,7 @@ export function updateContainer(
   if (__DEV__) {
     onScheduleRoot(container, element);
   }
+  console.error('第三步：updateContainer创建更新任务，开始调度');
   const current = container.current;
   const eventTime = requestEventTime();
   const lane = requestUpdateLane(current);
@@ -357,10 +358,12 @@ export function updateContainer(
     }
   }
 
+  
   const update = createUpdate(eventTime, lane);
   // Caution: React DevTools currently depends on this property
   // being called "element".
   update.payload = {element};
+  console.log('创建Update更新对象: 通过HostRootFiber获取优先级，通过优先级和当前时间创建一个update。优先级，update对应结构：', lane, update)
   callback = callback === undefined ? null : callback;
   if (callback !== null) {
     if (__DEV__) {
@@ -374,18 +377,13 @@ export function updateContainer(
     }
     update.callback = callback;
   }
-  console.error(`updateContainer会通过FiberRoot获取HostRootFiber，再通过HostRootFiber获取优先级，通过优先级和当前时间创建一个update，
-  并把编译好的App根节点赋予update.payload表示要更新的节点，然后调用enqueueUpdate初始化HostRootFiber的updatequeue，
-  updatequeue是一个环状的链表`)
-  console.log('优先级，update对应结构：', lane, update)
   enqueueUpdate(current, update, lane);
-  console.warn('updatequeue结构如下：',current.updateQueue)
-  console.log('初始化更新队列后，调用scheduleUpdateOnFiber开始执行更新')
+  console.log('enqueueUpdate初始化HostRootFiber的updatequeue，pdatequeue是一个环状的链表。updatequeue结构如下：',current.updateQueue)
+  console.error('第四步：初始化更新队列后，调用scheduleUpdateOnFiber开始调度入口')
   const root = scheduleUpdateOnFiber(current, lane, eventTime);
   if (root !== null) {
     entangleTransitions(root, current, lane);
   }
-
   return lane;
 }
 

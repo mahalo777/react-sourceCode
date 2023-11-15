@@ -3796,7 +3796,8 @@ function beginWork(
       );
     }
   }
-  console.log('当前beginwork的渲染优先级以及current tree 和workInProgress tree',renderLanes, current, workInProgress)
+  console.log('开始beginwork: 为传入的fiber节点创建子fiber节点并关联，设置fiber.flags，不在此次渲染优先级的会判断子节点是否更新');
+  console.log('beginwork：当前beginwork的渲染优先级以及current tree 和workInProgress tree',renderLanes, current, workInProgress)
   if (current !== null) {
     console.log('current不为空******************************')
     const oldProps = current.memoizedProps;
