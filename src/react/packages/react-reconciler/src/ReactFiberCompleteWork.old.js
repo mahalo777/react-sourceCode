@@ -940,10 +940,11 @@ function completeWork(
       }
       return null;
     }
-    case HostComponent: {
+    case HostComponent: { // 普通dom标签
       popHostContext(workInProgress);
       const rootContainerInstance = getRootHostContainer();
       const type = workInProgress.type;
+      // 如果是更新阶段
       if (current !== null && workInProgress.stateNode != null) {
         updateHostComponent(
           current,
@@ -957,6 +958,7 @@ function completeWork(
           markRef(workInProgress);
         }
       } else {
+        // mount阶段
         if (!newProps) {
           if (workInProgress.stateNode === null) {
             throw new Error(
@@ -976,7 +978,7 @@ function completeWork(
         // or completeWork depending on whether we want to add them top->down or
         // bottom->up. Top->down is faster in IE11.
         const wasHydrated = popHydrationState(workInProgress);
-        if (wasHydrated) {
+        if (wasHydrated) { // 服务端渲染
           // TODO: Move this and createInstance step into the beginPhase
           // to consolidate.
           if (
@@ -991,6 +993,7 @@ function completeWork(
             markUpdate(workInProgress);
           }
         } else {
+          // 为Fiber节点创建对应的Dom节点
           const instance = createInstance(
             type,
             newProps,
@@ -998,15 +1001,18 @@ function completeWork(
             currentHostContext,
             workInProgress,
           );
-
+          
+          // 把子树的DOM对象批量添加到本节点DOM对象之后
           appendAllChildren(instance, workInProgress, false, false);
 
+          // 将DOM节点赋值给stateNode
           workInProgress.stateNode = instance;
 
           // Certain renderers require commit-time effects for initial mount.
           // (eg DOM renderer supports auto-focus for certain elements).
           // Make sure such renderers get scheduled for later work.
           if (
+            // 为DOM添加属性
             finalizeInitialChildren(
               instance,
               type,
@@ -1024,6 +1030,9 @@ function completeWork(
           markRef(workInProgress);
         }
       }
+      /**
+       * bubbleProperties 根据fiber.child及fiber.child.sibling更新subtreeFlags和childLanes, 主要是为了标记子树有没有更新, 这样可以通过 fiber.subtreeFlags 快速判断子树是否有副作用钩子，不需要深度遍历. 在React17版本后使用subtreeFlags替换了finishWork.firstEffect的副作用链表
+       */
       bubbleProperties(workInProgress);
       return null;
     }

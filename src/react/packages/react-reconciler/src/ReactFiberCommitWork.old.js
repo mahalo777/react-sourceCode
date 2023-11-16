@@ -321,13 +321,17 @@ function safelyCallDestroy(
 let focusedInstanceHandle: null | Fiber = null;
 let shouldFireAfterActiveInstanceBlur: boolean = false;
 // commit突变之前的入口函数
+// 这个阶段的执行过程和 render 阶段 类似，一样存在 “递” 和 “归” 的逻辑，通过深度优先遍历，找到最后一个有 BeforeMutationMask 标记的 Fiber，然后从下往上调用 complete 逻辑
+// complete逻辑就是：内部会根据 flags 的值来判断是否存在 Snapshot 副作用，如果存在则会根据 tag 的值来执行对应的操作：执行类组件 getSnapshotBeforeUpdate 生命周期函数； 对 rootFiber 的容器进行清空操作
 export function commitBeforeMutationEffects(
   root: FiberRoot,
   firstChild: Fiber,
 ) {
+  // 根据 enableCreateEventHandleAPI 的值来决定是否启用新的事件处理方式（默认为 false，该函数返回值为 null）
   focusedInstanceHandle = prepareForCommit(root.containerInfo);
 
   nextEffect = firstChild;
+  // 处理 before mutation 阶段的副作用
   commitBeforeMutationEffects_begin();
 
   // We no longer need to track the active instance fiber
@@ -339,6 +343,7 @@ export function commitBeforeMutationEffects(
 }
 
 function commitBeforeMutationEffects_begin() {
+  // 对 Fiber 树进行深度优先遍历，当找到符合条件的节点时开始执行对应的操作
   while (nextEffect !== null) {
     const fiber = nextEffect;
 
@@ -2356,6 +2361,10 @@ export function commitLayoutEffects(
   committedLanes: Lanes,
 ): void {
   console.log('commitLayoutEffects - log: commitLayoutEffects layouteffect副作用函数是在commit阶段同步执行的，而useeffect副作用函数是通过ensureRootIsScheduled调度执行, 副作用函数都是在dom突变之后执行')
+  // 这个阶段的执行过程和 before mutation 阶段 类似，一样存在 “递” 和 “归” 的逻辑，通过深度优先遍历，找到最后一个有 LayoutMask 标记的 Fiber，然后从下往上调用 complete 逻辑
+  // commitLayoutEffectOnFiber 函数是 layout 阶段的主要函数，其内部会根据 finishedWork.tag 来调用对应生命周期钩子和 Hook
+  // FunctionComponent、ForwardRef、SimpleMemoComponent：执行 useLayoutEffect 挂载函数
+  // ClassComponent：执行 componentDidMount 或 componentDidUpdate 生命周期函数
   inProgressLanes = committedLanes;
   inProgressRoot = root;
   nextEffect = finishedWork;

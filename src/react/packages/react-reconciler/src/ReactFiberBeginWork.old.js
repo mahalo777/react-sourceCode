@@ -1065,6 +1065,13 @@ function updateFunctionComponent(
 
   if (current !== null && !didReceiveUpdate) {
     bailoutHooks(current, workInProgress, renderLanes);
+    /**
+     * 优化的工作路径 —— bailout https://juejin.cn/post/7017702556629467167#heading-17
+     * React 引入了树遍历算法中的常用优化手段 —— “剪枝”，在 React 中又被称作 bailout 。
+     * 通过 bailout ，某些与本次更新毫无关系的 Fiber 树路径将被直接省略掉；当然，
+     * “省略”并不是直接将这部分 Fiber 节点丢弃，而是直接复用被“省略”的 Fiber 子树的根节点；
+     * 这种“复用”方式，是会保留被“省略”的 Fiber 子树的所有 Fiber 节点的。
+     */
     return bailoutOnAlreadyFinishedWork(current, workInProgress, renderLanes);
   }
 
@@ -3799,7 +3806,7 @@ function beginWork(
   console.log('开始beginwork: 为传入的fiber节点创建子fiber节点并关联，设置fiber.flags，不在此次渲染优先级的会判断子节点是否更新');
   console.log('beginwork：当前beginwork的渲染优先级以及current tree 和workInProgress tree',renderLanes, current, workInProgress)
   if (current !== null) {
-    console.log('current不为空******************************')
+    console.log('current不为空，判定为更新')
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
 
@@ -3811,10 +3818,12 @@ function beginWork(
     ) {
       // If props or context changed, mark the fiber as having performed work.
       // This may be unset if the props are determined to be equal later (memo).
+      // 当 props 或 context 发生变化时将 Fiber 标记为需要更新
       didReceiveUpdate = true;
     } else {
       // Neither props nor legacy context changes. Check if there's a pending
       // update or context change.
+      // // checkScheduledUpdateOrContext 函数用于检查是否有挂起的更新或 context 变化
       const hasScheduledUpdateOrContext = checkScheduledUpdateOrContext(
         current,
         renderLanes,
@@ -3826,6 +3835,7 @@ function beginWork(
         (workInProgress.flags & DidCapture) === NoFlags
       ) {
         // No pending updates or context. Bail out now.
+        // 当没有挂起的更新或 context 时，复用 current 的节点
         didReceiveUpdate = false;
         return attemptEarlyBailoutIfNoScheduledUpdate(
           current,
@@ -3836,12 +3846,14 @@ function beginWork(
       if ((current.flags & ForceUpdateForLegacySuspense) !== NoFlags) {
         // This is a special case that only exists for legacy mode.
         // See https://github.com/facebook/react/pull/19216.
+        // legacy 模式强制更新
         didReceiveUpdate = true;
       } else {
         // An update was scheduled on this fiber, but there are no new props
         // nor legacy context. Set this to false. If an update queue or context
         // consumer produces a changed value, it will set this to true. Otherwise,
         // the component will assume the children have not changed and bail out.
+        // mount 时，根据 tag 创建不同类型的子 Fiber 节点
         didReceiveUpdate = false;
       }
     }
@@ -3871,9 +3883,10 @@ function beginWork(
   // move this assignment out of the common path and into each branch.
   workInProgress.lanes = NoLanes;
 
+  // 根据 tag 进入不同的处理函数，然后调用 reconcileChildren 创建 Fiber 节点
   switch (workInProgress.tag) {
     case IndeterminateComponent: {
-      console.log('log: beginwork 函数组件组件初次都会走mountIndeterminateComponent再来判别是函数组件还是类组件并赋值tag')
+      // 函数组件组件初次都会走mountIndeterminateComponent再来判别是函数组件还是类组件并赋值tag
       return mountIndeterminateComponent(
         current,
         workInProgress,

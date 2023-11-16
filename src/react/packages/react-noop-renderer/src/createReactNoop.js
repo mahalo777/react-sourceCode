@@ -365,7 +365,7 @@ function createReactNoop(reconciler: Function, useMutation: boolean) {
       return false;
     },
 
-    prepareUpdate(
+    (
       instance: Instance,
       type: string,
       oldProps: Props,
