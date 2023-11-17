@@ -2360,7 +2360,8 @@ export function commitLayoutEffects(
   root: FiberRoot,
   committedLanes: Lanes,
 ): void {
-  console.log('commitLayoutEffects - log: commitLayoutEffects layouteffect副作用函数是在commit阶段同步执行的，而useeffect副作用函数是通过ensureRootIsScheduled调度执行, 副作用函数都是在dom突变之后执行')
+  console.log('commitLayoutEffects：与beforeMutation 阶段类似，一样存在“递” 和 “归” 的逻辑，通过深度优先遍历，找到最后一个有 LayoutMask 标记的 Fiber，然后从下往上调用 complete 逻辑，即根据 finishedWork.tag 来调用对应生命周期钩子和 Hook，执行 useLayoutEffect 挂载函数， 执行 componentDidMount 或 componentDidUpdate 生命周期函数');
+  // commitLayoutEffects layouteffect副作用函数是在commit阶段同步执行的，而useEffect副作用函数是通过ensureRootIsScheduled调度执行, 副作用函数都是在dom突变之后执行
   // 这个阶段的执行过程和 before mutation 阶段 类似，一样存在 “递” 和 “归” 的逻辑，通过深度优先遍历，找到最后一个有 LayoutMask 标记的 Fiber，然后从下往上调用 complete 逻辑
   // commitLayoutEffectOnFiber 函数是 layout 阶段的主要函数，其内部会根据 finishedWork.tag 来调用对应生命周期钩子和 Hook
   // FunctionComponent、ForwardRef、SimpleMemoComponent：执行 useLayoutEffect 挂载函数

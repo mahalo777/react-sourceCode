@@ -741,6 +741,7 @@ export function isInterleavedUpdate(fiber: Fiber, lane: Lane) {
 let logs = 0
 function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   console.log('ensureRootIsScheduled:检测过期任务、根据下一更新优先级创建一个调度优先级再scheduleCallback调度更新')
+  // debugger;;; // 如果断点render过程，打开此注释
   const existingCallbackNode = root.callbackNode;
   // Check if any lanes are being starved by other work. If so, mark them as
   // expired so we know to work on those next.
@@ -754,6 +755,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
   );
   
+  // 如果没有需要调度的任务，则取消当前正在调度的任务
   if (nextLanes === NoLanes) {
     console.log('如果下一更新优先级为0，判断是否存在被中断的任务',existingCallbackNode)
     // Special case: There's nothing to work on.
@@ -983,7 +985,7 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
       markRootSuspended(root, lanes);
     } else {
        // 渲染完成
-       console.log('ƒiber树渲染完成')
+      console.log('fiber树构建完成')
       // The render completed.
 
       // Check if this render may have yielded to a concurrent event, and if so,
@@ -1026,6 +1028,8 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
       root.finishedWork = finishedWork;
       root.finishedLanes = lanes;
       // 完成并发渲染的后续处理（即进入 commit 阶段）
+      console.log('第八步：完成并发渲染的后续处理（即进入 commit 阶段）')
+      // debugger;;; // 断点commit阶段
       finishConcurrentRender(root, exitStatus, lanes);
     }
   }
@@ -1813,20 +1817,19 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
 // The work loop is an extremely hot path. Tell Closure not to inline it.
 /** @noinline */
 function workLoopSync() {
-  console.group('第七步：workLoopSync循环构造fiber树');
+  console.warn('第七步：workLoopSync循环构造fiber树');
   console.log('当前正在执行的fiber workInProgress', workInProgress)
-  console.log('初次render或者任务过期，都会调用同步的workLoop更新，不会进行时间切片，都是调用workLoopSync,不管是同步还是异步都会while循环调用performUnitOfWork')
-  console.warn(`workLoop主要是分三个阶段：
-  第一个是beginWork，从hostRootFiber向下递归创建或者复用fiber给fiber打上tag（这个tag就是对应的增删改）。
-  第二个通过completeWork向上递归到Host处理props创建dom和effectlist等，这个effectlist就是收集那些打上tag的fiber，方便在commit阶段直接遍历这个list执行更改
-  最后在commit阶段提交突变，遍历effectlist（增删改对应的fiber），执行effect`)
+  // 初次render或者任务过期，都会调用同步的workLoop更新，不会进行时间切片，都是调用workLoopSync,不管是同步还是异步都会while循环调用performUnitOfWork
+  // workLoop主要是分三个阶段：
+  // 第一个是beginWork，从hostRootFiber向下递归创建或者复用fiber给fiber打上tag（这个tag就是对应的增删改）。
+  // 第二个通过completeWork向上递归到Host处理props创建dom和effectlist等，这个effectlist就是收集那些打上tag的fiber，方便 在commit阶段直接遍历这个list执行更改
+  // 第三个在commit阶段提交突变，遍历effectlist（增删改对应的fiber），执行effect
   // Already timed out, so perform work without checking if we need to yield.
   console.warn('循环构造performUnitOfWork: 从hostRootFiber开始深度优先遍历，交替执行“递”“归”阶段，构造出fiber树')
   while (workInProgress !== null) {
     console.warn('开始performUnitOfWork')
     performUnitOfWork(workInProgress);
   }
-  console.groupEnd()
 }
 
 function renderRootConcurrent(root: FiberRoot, lanes: Lanes) {
@@ -2185,8 +2188,9 @@ function commitRootImpl(
     if (!rootDoesHavePassiveEffects) {
       rootDoesHavePassiveEffects = true;
       pendingPassiveEffectsRemainingLanes = remainingLanes;
+      // 创建调度任务，并以 NormalSchedulerPriority 优先级来执行
       scheduleCallback(NormalSchedulerPriority, () => {
-        // 调度执行
+        // /触发 useEffect 的创建、销毁函数及其他同步任务
         flushPassiveEffects();
         // This render triggered passive effects: release the root cache pool
         // *after* passive effects fire to avoid freeing a cache pool that may
@@ -2258,8 +2262,8 @@ function commitRootImpl(
     // The next phase is the mutation phase, where we mutate the host tree.
     // commit第二个阶段dom突变，这个阶段主要处理一些flags为ref，contextReset，ref，placement， update，deletion，hydrating的fiber
     // 最终都会体现到对dom的增删和插入移位上
-    console.error('commit第二个阶段dom突变，这个阶段主要处理一些flags为ref，contextReset，ref，placement， update，deletion，hydrating的fiber \n 最终都会体现到对dom的增删和插入移位上')
-    // 进入 mutation 阶段，执行 DOM 操作后
+    console.error('commit第二个阶段，页面发生变化，dom突变。这个阶段主要处理一些flags为ref，contextReset，ref，placement， update，deletion，hydrating的fiber \n 最终都会体现到对dom的增删和插入移位上')
+    // 进入 mutation 阶段，执行 DOM 操作
     commitMutationEffects(root, finishedWork, lanes);
     
     if (enableCreateEventHandleAPI) {
@@ -2289,7 +2293,7 @@ function commitRootImpl(
       markLayoutEffectsStarted(lanes);
     }
     // 进入 layout 阶段，执行 DOM 操作
-    console.error('进入 layout 阶段，执行 DOM 操作')
+    console.error('commit第三阶段：layout阶段，执行DOM操作后')
     commitLayoutEffects(finishedWork, root, lanes);
     if (__DEV__) {
       if (enableDebugTracing) {
