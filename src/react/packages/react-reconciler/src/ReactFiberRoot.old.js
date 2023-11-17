@@ -142,8 +142,7 @@ export function createFiberRoot(
   transitionCallbacks: null | TransitionTracingCallbacks,
 ): FiberRoot {
   console.groupCollapsed('createFiberRoot: 创建FiberRoot和RootFiberNode')
-  console.log('createFiberRoot参数(containerInfo, tag, hydrate, initialChildren, hydrationCallbacks, concurrentUpdatesByDefaultOverride, identifierPrefix, onRecoverableError, transitionCallbacks)', containerInfo, tag, hydrate, initialChildren, hydrationCallbacks, concurrentUpdatesByDefaultOverride, identifierPrefix, onRecoverableError, transitionCallbacks)
-  console.log('创建应用里面唯一的一个FiberRoot，保存着构建需要的状态如tag')
+  console.log('创建应用里面唯一的一个FiberRoot，保存着构建需要的状态如tag', tag)
   const root: FiberRoot = (new FiberRootNode(
     containerInfo,
     tag,
@@ -198,8 +197,8 @@ export function createFiberRoot(
     };
     uninitializedFiber.memoizedState = initialState;
   }
-  console.log('创建完HostRootFiber后会先初始化它的memoizedState也就是状态')
-  console.log('创建完FiberRoot和HostRootFiber对应结构',root, uninitializedFiber)
+  console.log('创建完HostRootFiber后会先初始化它的memoizedState也就是状态,创建完FiberRoot和HostRootFiber对应结构', root, uninitializedFiber)
+  console.log('初始化更新队列')
   initializeUpdateQueue(uninitializedFiber);
   console.groupEnd()
   return root;

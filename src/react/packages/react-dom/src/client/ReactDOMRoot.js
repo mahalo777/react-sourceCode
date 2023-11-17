@@ -169,7 +169,6 @@ export function createRoot(
   container: Element | DocumentFragment,
   options?: CreateRootOptions,
 ): RootType {
-  console
   console.log('createRoot会先校验传入的container是否为一个有效的DOM节点，如果是开发环境还会做一些其他校验如是否为body等')
   // 校验container是否有效
   if (!isValidContainer(container)) {
@@ -225,7 +224,6 @@ export function createRoot(
       transitionCallbacks = options.transitionCallbacks;
     }
   }
-
   const root = createContainer(
     container,
     ConcurrentRoot,
@@ -237,13 +235,12 @@ export function createRoot(
     transitionCallbacks,
   );
   markContainerAsRoot(root.current, container); // 把container这个DOM打上React的标记，就是在DOM上加个属性
-  console.log('创建完FiberRoot和HostRootFiber后，会根据传入的container是否为注释标签,如果是则取它的父节点，如果不是就取本身')
-  console.log('通过listenToAllSupportedEvents把组成事件(事件委托)')
   const rootContainerElement: Document | Element | DocumentFragment =
     container.nodeType === COMMENT_NODE
       ? (container.parentNode: any)
       : container; //判断传入的container是不是注释标签，是就去它父元素
   //事件绑定
+  console.log('通过listenToAllSupportedEvents把组成事件(事件委托)')
   listenToAllSupportedEvents(rootContainerElement);
   console.error(`至此createRoot工作基本做完，主要就是根据传入的DOM创建FiberRoot和HostRootFiber，初始化HostRootFiber的状态以及更新队列
   并把HostRootFiber.stateNode指向FiberRoot，把FiberRoot.current指向HostRootFiber，用于更新。

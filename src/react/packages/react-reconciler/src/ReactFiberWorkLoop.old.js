@@ -521,19 +521,14 @@ export function scheduleUpdateOnFiber(
   lane: Lane,
   eventTime: number,
 ): FiberRoot | null {
-  console.groupCollapsed('开始调度 scheduleUpdateOnFiber： 判断死循环、递归更新子节点优先级，触发ensureRootIsScheduled')
-  checkForNestedUpdates();// 检测是否死循环
+  console.log('开始调度 scheduleUpdateOnFiber： 判断死循环、递归更新子节点优先级，触发ensureRootIsScheduled')
+  checkForNestedUpdates();// 检测是否死循环，例如在didupdate调用setstate等。
   if (__DEV__) {
     if (isRunningInsertionEffect) {
       console.error('useInsertionEffect must not schedule updates.');
     }
   }
-  if(log === 0) {
-    console.warn(`先总结下scheduleUpdateOnFiber的作用，首先他会去判断本次触发的更新是不是死循环，例如在didupdate调用setstate等。
-    其次会从当前更新节点一直递归到HostRootFiber，递归过程主要是更新current tree和workInProgress tree 的子节点的优先级`)
-  }
-  console.groupEnd()
-  //markUpdateLaneFromFiberToRoot这是一个从当前更新节点到hostrootfiber的一个向上递归过程主要用于更新递归路径上fiber的lanes
+  //markUpdateLaneFromFiberToRoot这是一个从当前更新节点到hostRootFiber的一个向上递归过程主要用于更新递归路径上fiber的lanes
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
   if (root === null) {
     return null;
@@ -745,6 +740,7 @@ export function isInterleavedUpdate(fiber: Fiber, lane: Lane) {
 // scheduled调用ensureRootIsScheduled进行更新, react18中异步调用多次状态改变只会触发一次更新是根据优先级加上执行栈的上下文进行判别的
 let logs = 0
 function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
+  console.log('ensureRootIsScheduled:检测过期任务、根据下一更新优先级创建一个调度优先级再scheduleCallback调度更新')
   const existingCallbackNode = root.callbackNode;
   // Check if any lanes are being starved by other work. If so, mark them as
   // expired so we know to work on those next.
@@ -752,24 +748,12 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   markStarvedLanesAsExpired(root, currentTime);
 
   // Determine the next lanes to work on, and their priority.
+  // 获取下一更新优先级
   const nextLanes = getNextLanes(
     root,
     root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
   );
-  console.groupCollapsed('ensureRootIsScheduled：首先会检测有没有要过期的任务，如果有就会更新root上的过期优先级防止任务被饿死。然后获取下一个更新优先级')
-  logs === 0 && console.warn(`
-  ensureRootIsScheduled首先会检测有没有要过期的任务，如果有就会更新root上的过期优先级防止任务被饿死。然后获取下一个更新优先级。
-  简单介绍下主要的优先级有哪些：0代表NoLanes表示没任务需要处理，1代表同步最高优先级，4代表处理哪些用户输入等触发的更新的优先级，16代表默认优先级比如初次render等。
-  当发现下一个更新优先级为0时候，就会检测是否存在root.callbackNode，如果存在就会调度执行，***root.callbackNode实际就是那些被高优先级任务所中断的低优先级任务***。
-  如果下一更新优先级不为0，就会使用优先级最高的通道来表示下一回调的优先级，然后获取当前根节点上已存在回调的优先级，如果发现已存在优先级和下一优先级一样就重用，现在的任务不会再向synqueue里面增加任务。
-  这里的回调指的的就是setstate这些。这也就解释了为啥一个事件函数中触发多个setstate只会触发一次更新的原因。
-  如果下一个回调优先级和已经存在回调优先级不相同就会判断下一回调优先级是否是同步最高优先级，如果是就会把更新任务推入到synqueue去。
-  如果不是就会重新根据下一更新优先级创建一个调度优先级再scheduleCallback调度更新`)
-  logs === 0 && console.log(`在react中有两种有限级一种是react更新优先级，一种是调度优先级，react更新优先级和调度优先级有着对应关系。
-  调度优先级分别是0-5，0代表没有，1代表立马调度，2代表用户行为调度，3代表一般的如render调度，4和5代表低优先级调度`)
-  console.groupEnd();
-  logs === 0 && console.log('当前初次渲染nextLanes为：', nextLanes,existingCallbackNode)
-  logs !== 0 && console.log('当前更新渲染nextLanes为以及是否存在被中断任务：', nextLanes, existingCallbackNode)
+  
   if (nextLanes === NoLanes) {
     console.log('如果下一更新优先级为0，判断是否存在被中断的任务',existingCallbackNode)
     // Special case: There's nothing to work on.
@@ -823,11 +807,10 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 
   // Schedule a new callback.
   let newCallbackNode;
-  console.log('注册新的调度任务，下一任务的优先级', newCallbackPriority)
   if (newCallbackPriority === SyncLane) {
     // Special case: Sync React callbacks are scheduled on a special
     // internal queue
-    console.log(root.tag, LegacyRoot, supportsMicrotasks, 'log: ensureRootIsScheduled 进入syncLane优先级更新逻辑，在react18都是concurrent模式，会进入scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))，把回调函数放入synqueue队列当中')
+    console.log('第五步：开启调度, ensureRootIsScheduled 进入syncLane优先级更新逻辑，在react18都是concurrent模式，会进入scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))，把回调函数放入syncQueue队列当中')
     if (root.tag === LegacyRoot) {
       if (__DEV__ && ReactCurrentActQueue.isBatchingLegacy !== null) {
         ReactCurrentActQueue.didScheduleLegacyUpdate = true;
@@ -899,7 +882,8 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
       performConcurrentWorkOnRoot.bind(null, root),
     );
   }
-  console.log('调度完后会scheduler会返回一个newTask，就是一个小顶堆数据，如果这个newTask和root上之前存在的task一样，则表示中断本次任务，callbackNode以及callbackPriority',newCallbackNode,newCallbackPriority)
+  console.log('调度完后会scheduler会返回一个newTask，就是一个小顶堆数据，如果这个newTask和root上之前存在的task一样，则表示中断本次任务。callbackNode以及callbackPriority',newCallbackNode,newCallbackPriority)
+  console.log('现在执行调度中心的回调任务，证明是异步：')
   root.callbackPriority = newCallbackPriority;
   root.callbackNode = newCallbackNode;
   logs = 1
@@ -999,7 +983,7 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
       markRootSuspended(root, lanes);
     } else {
        // 渲染完成
-       console.log('渲染完成')
+       console.log('ƒiber树渲染完成')
       // The render completed.
 
       // Check if this render may have yielded to a concurrent event, and if so,

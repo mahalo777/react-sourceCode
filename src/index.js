@@ -13,7 +13,7 @@ import { BrowserRouter } from 'react-router-dom'
  *    - HostRootFiber对象，应用中第一个fiber对象（保存了很多状态？TIDI）
  */
 console.error('开始你的奇妙冒险吧少年~')
-console.error('启动流程：第一步创建三个全局对象：ReactDomRoot对象，在其原型上拥有render,umount方法；fiberRoot对象，保存fiber构建过程中所依赖的全局状态;HostRootFiber对象，应用中第一个fiber对象（保存了很多状态？TIDI）')
+console.error('启动流程：第一步创建三个全局对象：ReactDomRoot对象，在其原型上拥有render,umount方法；fiberRoot对象，保存fiber构建过程中所依赖的全局状态;HostRootFiber对象，应用中第一个fiber对象')
 const root = ReactDOM.createRoot(document.getElementById('root'));
 console.error('启动流程：第二步开始render')
 root.render(
