@@ -308,7 +308,7 @@ export function reconcileChildren(
 
     // If we had any progressed work already, that is invalid at this point so
     // let's throw it out.
-    console.error('diff 算法入口reconcileChildFibers ********')
+    console.warn('diff 算法入口reconcileChildFibers ********')
     workInProgress.child = reconcileChildFibers(
       workInProgress,
       current.child,

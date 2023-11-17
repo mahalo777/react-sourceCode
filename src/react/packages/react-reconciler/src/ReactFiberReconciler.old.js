@@ -379,7 +379,7 @@ export function updateContainer(
   }
   enqueueUpdate(current, update, lane);
   console.log('enqueueUpdate初始化HostRootFiber的updatequeue，pdatequeue是一个环状的链表。updatequeue结构如下：',current.updateQueue)
-  console.error('第四步：初始化更新队列后，调用scheduleUpdateOnFiber开始调度入口')
+  console.error('第四步：初始化更新队列后，调用scheduleUpdateOnFiber进入调度入口')
   const root = scheduleUpdateOnFiber(current, lane, eventTime);
   if (root !== null) {
     entangleTransitions(root, current, lane);

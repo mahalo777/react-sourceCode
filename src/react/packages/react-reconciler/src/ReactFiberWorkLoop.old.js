@@ -757,7 +757,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   
   // 如果没有需要调度的任务，则取消当前正在调度的任务
   if (nextLanes === NoLanes) {
-    console.log('如果下一更新优先级为0，判断是否存在被中断的任务',existingCallbackNode)
+    console.log('下一更新优先级为0，判断是否存在被中断的任务',existingCallbackNode)
     // Special case: There's nothing to work on.
     if (existingCallbackNode !== null) {
       console.log('中断之前存在的task')
@@ -1028,16 +1028,16 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
       root.finishedWork = finishedWork;
       root.finishedLanes = lanes;
       // 完成并发渲染的后续处理（即进入 commit 阶段）
-      console.log('第八步：完成并发渲染的后续处理（即进入 commit 阶段）')
+      console.error('第八步：完成并发渲染的后续处理（即进入 commit 阶段）')
       // debugger;;; // 断点commit阶段
       finishConcurrentRender(root, exitStatus, lanes);
     }
   }
+  console.log('触发一次新的调度，确保commit阶段产生的更新被调度');
 
   ensureRootIsScheduled(root, now());
   // 这里表示任务中断了会结合scheduleCallback中的workLoop中的const continuationCallback = callback(didUserCallbackTimeout)进行判断，如果continuationCallback为function表示中断
   // 其中callback就表示正在执行的任务，在执行之前的任务后如果返回一个function表示任务被中断了，就会把当前正在执行的task的callback赋值为被中断的函数，一般中断函数就是当前执行task的callback，方便重启
-  console.warn('root原有的task和执行调度返回的task', originalCallbackNode, root.callbackNode)
   if (root.callbackNode === originalCallbackNode) {
     console.log('****************************************任务被中断啦*********************************')
     // The task node scheduled for this root is the same one that's
@@ -1817,7 +1817,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
 // The work loop is an extremely hot path. Tell Closure not to inline it.
 /** @noinline */
 function workLoopSync() {
-  console.warn('第七步：workLoopSync循环构造fiber树');
+  console.error('第七步：workLoopSync循环构造fiber树');
   console.log('当前正在执行的fiber workInProgress', workInProgress)
   // 初次render或者任务过期，都会调用同步的workLoop更新，不会进行时间切片，都是调用workLoopSync,不管是同步还是异步都会while循环调用performUnitOfWork
   // workLoop主要是分三个阶段：

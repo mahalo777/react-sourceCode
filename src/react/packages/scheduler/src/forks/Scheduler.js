@@ -228,7 +228,7 @@ function workLoop(hasTimeRemaining, initialTime) { //
       }
       console.error('第六步：执行传入的调度任务，里就是react中performConcurrentWorkOnRoot函数的返回值')
       const continuationCallback = callback(didUserCallbackTimeout);// 这里就是react中performConcurrentWorkOnRoot函数的返回值
-      console.log('task任务是否被中断*******************', continuationCallback ? true : false)
+      console.log('task任务返回值（performConcurrentWorkOnRoot），是否被中断', continuationCallback ? true : false)
       currentTime = getCurrentTime();
       // 回调完成, 判断是否还有连续(派生)回调
       if (typeof continuationCallback === 'function') {
@@ -243,6 +243,7 @@ function workLoop(hasTimeRemaining, initialTime) { //
           currentTask.isQueued = false;
         }
         if (currentTask === peek(taskQueue)) {
+          console.error('第十步： 调度任务完成，出栈')
           pop(taskQueue);
         }
       }
@@ -330,7 +331,7 @@ function unstable_wrapCallback(callback) {
 }
 let log = 0
 function unstable_scheduleCallback(priorityLevel, callback, options) { //这个函数是和react连接的桥梁 
-  console.warn('unstable_scheduleCallback 调度中心和react通信接口, 进入调度中心')
+  console.log('unstable_scheduleCallback 调度中心和react通信接口, 进入调度中心')
   var currentTime = getCurrentTime();
   var startTime;
   if (typeof options === 'object' && options !== null) {
@@ -420,7 +421,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) { //这个�
     // 如果没有就会开启调度
     if (!isHostCallbackScheduled && !isPerformingWork) { //初始这两个都是false
       isHostCallbackScheduled = true;
-      console.error('开启一次新的调度： requestHostCallback(flushWork)')
+      console.warn('开启一次新的调度： requestHostCallback(flushWork)')
       requestHostCallback(flushWork);
     }
   }
@@ -574,6 +575,7 @@ const performWorkUntilDeadline = () => { // 调度时候执行的函数
       hasMoreWork = scheduledHostCallback(hasTimeRemaining, currentTime);
     } finally {
       // 表示是否还有任务需要执行，taskqueue不为空
+      console.error('第十一步：the end hasMoreWork：任务执行结果，有值代表被中断则重新发起调度；无值则结束', hasMoreWork)
       if (hasMoreWork) {
         // If there's more work, schedule the next message event at the end
         // of the preceding one.
@@ -617,8 +619,8 @@ if (typeof localSetImmediate === 'function') {
   const channel = new MessageChannel();
   const port = channel.port2;
   channel.port1.onmessage = performWorkUntilDeadline;
-  console.log('MessageChannel发送消息，宏任务异步执行回调函数')
   schedulePerformWorkUntilDeadline = () => {
+    console.log('MessageChannel发送消息，宏任务异步执行回调函数')
     port.postMessage(null);
   };
 } else {
