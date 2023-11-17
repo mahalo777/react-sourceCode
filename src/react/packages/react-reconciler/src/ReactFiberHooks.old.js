@@ -1659,7 +1659,7 @@ function updateRef<T>(initialValue: T): {|current: T|} {
 
 function mountEffectImpl(fiberFlags, hookFlags, create, deps): void {
   const hook = mountWorkInProgressHook();
-  console.log(hook, 'log： 初次执行useeffect时候，会创建hooks和之前的hooks连接起来，如果当前fiber的updateQueue为空的话就会为其创建一个updatequeue，然后再创建一个effect一个环状链表每个useEffect都会和之前的形成一个环，并把effect挂载在更新队列的lasteffect上')
+  console.log(hook, 'log： 初次执行useEffect时候，会创建hooks和之前的hooks连接起来，如果当前fiber的updateQueue为空的话就会为其创建一个updatEqueue，然后再创建一个effect一个环状链表每个useEffect都会和之前的形成一个环，并把effect挂载在更新队列的lasteffect上')
   const nextDeps = deps === undefined ? null : deps;
   //给当前fiber打上一个flags
   currentlyRenderingFiber.flags |= fiberFlags;
@@ -2209,7 +2209,7 @@ function dispatchSetState<S, A>(
       );
     }
   }
-  console.log('log: dispatchSetState 触发setstate')
+  console.error('更新阶段: dispatchSetState 触发setstate')
   const lane = requestUpdateLane(fiber);
 
   const update: Update<S, A> = {
@@ -2269,7 +2269,7 @@ function dispatchSetState<S, A>(
     if (root !== null) {
       entangleTransitionUpdate(root, queue, lane);
     }
-    console.log(fiber, lane, eventTime, root, 'log: dispatchSetState触发结束 fib lane time root')
+    console.error('dispatchSetState触发结束')
   }
 
   markUpdateInDevTools(fiber, lane, action);

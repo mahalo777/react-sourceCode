@@ -23,7 +23,7 @@ let isFlushingSyncQueue: boolean = false;
 export function scheduleSyncCallback(callback: SchedulerCallback) {
   // Push this callback into an internal queue. We'll flush these either in
   // the next tick, or earlier if something calls `flushSyncCallbackQueue`.
-  console.log(syncQueue, 'log: scheduleSyncCallback的回调队列')
+  console.log('log: scheduleSyncCallback的回调队列', syncQueue)
   if (syncQueue === null) {
     syncQueue = [callback];
   } else {
@@ -61,10 +61,10 @@ export function flushSyncCallbacks() {
       // TODO: Is this necessary anymore? The only user code that runs in this
       // queue is in the render or commit phases.
       setCurrentUpdatePriority(DiscreteEventPriority);
-      console.log(previousUpdatePriority, DiscreteEventPriority, 'log: flushSyncCallbacks 同步刷新任务队列之前的优先级和现在的优先级')
+      console.log('log: flushSyncCallbacks 同步刷新任务队列之前的优先级和现在的优先级', previousUpdatePriority, DiscreteEventPriority)
       for (; i < queue.length; i++) {
         let callback = queue[i];
-        console.log(callback, 'log: flushSyncCallbacks 同步刷新执行的任务')
+        console.error(callback, 'log: flushSyncCallbacks 同步刷新执行的任务')
         do {
           callback = callback(isSync);
         } while (callback !== null);

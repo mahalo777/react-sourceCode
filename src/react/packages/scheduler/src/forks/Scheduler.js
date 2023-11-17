@@ -226,9 +226,9 @@ function workLoop(hasTimeRemaining, initialTime) { //
       if (enableProfiling) {
         markTaskRun(currentTask, currentTime);
       }
-      console.error('第六步：执行传入的调度任务，里就是react中performConcurrentWorkOnRoot函数的返回值')
-      const continuationCallback = callback(didUserCallbackTimeout);// 这里就是react中performConcurrentWorkOnRoot函数的返回值
-      console.log('task任务返回值（performConcurrentWorkOnRoot），是否被中断', continuationCallback ? true : false)
+      console.error('第六步：执行传入的调度任务，这里就是react中performConcurrentWorkOnRoot函数的返回值')
+      const continuationCallback = callback(didUserCallbackTimeout);// 渲染时这里就是react中performConcurrentWorkOnRoot函数的返回值
+      console.log('task任务返回值，是否被中断', continuationCallback ? true : false)
       currentTime = getCurrentTime();
       // 回调完成, 判断是否还有连续(派生)回调
       if (typeof continuationCallback === 'function') {
@@ -377,8 +377,8 @@ function unstable_scheduleCallback(priorityLevel, callback, options) { //这个�
     newTask.isQueued = false;
   }
 
-  console.log('根据当前优先级、计算过期时间，并创建更新任务，包括:', startTime, currentTime, timeout, priorityLevel) 
-  //react请求调度执行 performconcurrentworkonRoot
+  console.log('根据当前优先级、计算过期时间，并创建更新任务。优先级:', priorityLevel) 
+  //react请求调度执行 performConcurrentWorkonRoot
   /**
    * scheduler主要是用于react进行注册调度任务（更新和mounted等），他会根据你注册的任务是否是延时任务来执行不同的调度方式。
   如果是延时任务主要是通过settimeout来执行调度，需要立马执行的任务会先判断是否是node或ie环境如果是就使用setImmediate，如果不是就会判断支不支持MessageChannel如果支持就使用MessageChannel，如果不支持就使用settimeout兜底调度执行

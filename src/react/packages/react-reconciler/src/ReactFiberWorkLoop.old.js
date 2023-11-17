@@ -797,7 +797,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
         );
       }
     }
-    console.log('在一个事件函数中多次触发setstate')
+    console.log('在一个事件函数中多次触发setstate, ensureRootIsScheduled 执行return')
     // The priority hasn't changed. We can reuse the existing task. Exit.
     return;
   }
@@ -809,10 +809,11 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 
   // Schedule a new callback.
   let newCallbackNode;
+  console.log('本次调度优先级', newCallbackPriority, SyncLane)
   if (newCallbackPriority === SyncLane) {
     // Special case: Sync React callbacks are scheduled on a special
     // internal queue
-    console.log('第五步：开启调度, ensureRootIsScheduled 进入syncLane优先级更新逻辑，在react18都是concurrent模式，会进入scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))，把回调函数放入syncQueue队列当中')
+    console.error('第五步：开启调度SyncLane, ensureRootIsScheduled 进入syncLane优先级更新逻辑，在react18都是concurrent模式，会进入scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))，把回调函数放入syncQueue队列当中')
     if (root.tag === LegacyRoot) {
       if (__DEV__ && ReactCurrentActQueue.isBatchingLegacy !== null) {
         ReactCurrentActQueue.didScheduleLegacyUpdate = true;
@@ -833,8 +834,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
         // 判断队列里面有没有之前的任务
         ReactCurrentActQueue.current.push(flushSyncCallbacks);
       } else {
-        console.log(executionContext, 'log: ensureRootIsScheduled')
-        //这里scheduleMicrotask类似settimeout(() => {})，或者promise.resolve(null).then(() => {})
+        //这里scheduleMicrotask类似promise.resolve(null).then(() => {})
         scheduleMicrotask(() => {
           // In Safari, appending an iframe forces microtasks to run.
           // https://github.com/facebook/react/issues/22459
@@ -2189,6 +2189,7 @@ function commitRootImpl(
       rootDoesHavePassiveEffects = true;
       pendingPassiveEffectsRemainingLanes = remainingLanes;
       // 创建调度任务，并以 NormalSchedulerPriority 优先级来执行
+      console.log('创建调度任务，并以 NormalSchedulerPriority 优先级来执行');
       scheduleCallback(NormalSchedulerPriority, () => {
         // /触发 useEffect 的创建、销毁函数及其他同步任务
         flushPassiveEffects();

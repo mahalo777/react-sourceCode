@@ -265,7 +265,7 @@ export function processDispatchQueue(
 ): void {
   const inCapturePhase = (eventSystemFlags & IS_CAPTURE_PHASE) !== 0;
   if(dispatchQueue.length) {
-    console.log(dispatchQueue, 'log: processDispatchQueue 触发当前节点递归到根节点路径上同名的事件')
+    console.log('log: processDispatchQueue 触发当前节点递归到根节点路径上同名的事件',dispatchQueue)
   }
   for (let i = 0; i < dispatchQueue.length; i++) {
     const {event, listeners} = dispatchQueue[i];

@@ -12,12 +12,18 @@
 
 ***特别感谢***：
 
-感谢卡颂老师的基础知识补充：https://react.iamkasong.com/  react-v17
-感谢7km老师的精美图，对整体流程理解帮大忙：https://7km.top/main/workloop/ react-v17
-感谢luxi老师的源码仓库和注释，本仓库在以前的基础上加了自己的理解，对注释信息景象了精简、
-分组、补充：https://github.com/luxi-record/react-sourceCodeDebug react-v18 18.0.0
-感谢茂茂老师的源码解读，也是基于卡颂老师和7km老师的解读：https://notes.fe-mm.com/analysis/react/18 react-v18 18.2.0
+流程梳理：
+感谢7km老师的流程解读和总结，配图非常精美：https://7km.top/main/workloop/ react-v17
+感谢茂茂老师的源码解读，有些函数的配图很棒：https://notes.fe-mm.com/analysis/react/18 react-v18 18.2.0
 
-感谢各位老师的无私分享，让我这种笨比也能看懂源码！如有雷同，纯属我抄袭，如有问题，欢迎指正~
+基础补充：
+感谢卡颂老师的基础知识补充：https://react.iamkasong.com/  react-v17
+
+调试：
+感谢luxi老师的源码仓库和注释，本仓库在以前的基础上加了自己的理解，对注释信息景象了精简、
+分组、补充：https://github.com/luxi-record/react-sourceCodeDebug react-v18.0.0
+
+
+感谢各位老师的无私分享，让我这种笨比也能看懂源码！如有雷同，纯属我抄袭，如有问题欢迎指正
 
 
