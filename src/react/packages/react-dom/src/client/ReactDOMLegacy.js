@@ -198,8 +198,11 @@ function legacyCreateRootFromDOMContainer( // render时候如果是初次渲染�
       container.nodeType === COMMENT_NODE ? container.parentNode : container;
     listenToAllSupportedEvents(rootContainerElement);// 事件绑定，将所有的事件分配相关的优先级并绑定在root上
 
+    // debugger;;; // 同步模式打开注释
+
     // Initial mount should not be batched. //初始渲染阶段调用的更新是同步的不是批量
     flushSync(() => {
+      console.log('legacy模式：创建派发同步任务-updateContainer')
       updateContainer(initialChildren, root, parentComponent, callback);
     });
 

@@ -23,7 +23,6 @@ let isFlushingSyncQueue: boolean = false;
 export function scheduleSyncCallback(callback: SchedulerCallback) {
   // Push this callback into an internal queue. We'll flush these either in
   // the next tick, or earlier if something calls `flushSyncCallbackQueue`.
-  console.log('log: scheduleSyncCallback的回调队列', syncQueue)
   if (syncQueue === null) {
     syncQueue = [callback];
   } else {
@@ -31,6 +30,7 @@ export function scheduleSyncCallback(callback: SchedulerCallback) {
     // we already scheduled one when we created the queue.
     syncQueue.push(callback);
   }
+  console.log('scheduleSyncCallback: 入栈syncQueue任务队列为', callback)
 }
 
 export function scheduleLegacySyncCallback(callback: SchedulerCallback) {
@@ -50,6 +50,7 @@ export function flushSyncCallbacksOnlyInLegacyMode() {
 }
 // 执行任务队列的任务
 export function flushSyncCallbacks() {
+  console.log('flushSyncCallbacks同步执行任务队列的任务', syncQueue)
   if (!isFlushingSyncQueue && syncQueue !== null) {
     // Prevent re-entrance.
     isFlushingSyncQueue = true;
@@ -61,7 +62,6 @@ export function flushSyncCallbacks() {
       // TODO: Is this necessary anymore? The only user code that runs in this
       // queue is in the render or commit phases.
       setCurrentUpdatePriority(DiscreteEventPriority);
-      console.log('log: flushSyncCallbacks 同步刷新任务队列之前的优先级和现在的优先级', previousUpdatePriority, DiscreteEventPriority)
       for (; i < queue.length; i++) {
         let callback = queue[i];
         console.error(callback, 'log: flushSyncCallbacks 同步刷新执行的任务')
