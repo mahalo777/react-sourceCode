@@ -641,6 +641,7 @@ export function scheduleUpdateOnFiber(
       // scheduleCallbackForFiber to preserve the ability to schedule a callback
       // without immediately flushing it. We only do this for user-initiated
       // updates, to preserve historical behavior of legacy mode.
+      console.log('执行栈为空，同步模式，不是批量更新-同步刷新任务队列')
       resetRenderTimer();
       flushSyncCallbacksOnlyInLegacyMode();
     }
@@ -757,7 +758,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
   
   // 如果没有需要调度的任务，则取消当前正在调度的任务
   if (nextLanes === NoLanes) {
-    console.log('下一更新优先级为0，判断是否存在被中断的任务',existingCallbackNode)
+    console.log('下一更新优先级为0，判断是否存在被中断的任务', existingCallbackNode)
     // Special case: There's nothing to work on.
     if (existingCallbackNode !== null) {
       console.log('中断之前存在的task')
@@ -765,6 +766,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     }
     root.callbackNode = null;
     root.callbackPriority = NoLane;
+    console.log('没有要执行的任务return')
     return;
   }
   // We use the highest priority lane to represent the priority of the callback.
@@ -809,11 +811,11 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 
   // Schedule a new callback.
   let newCallbackNode;
-  console.log('本次调度优先级', newCallbackPriority, SyncLane)
+  console.log('本次调度优先级和同步异步', newCallbackPriority, SyncLane)
   if (newCallbackPriority === SyncLane) {
     // Special case: Sync React callbacks are scheduled on a special
     // internal queue
-    console.error('第五步：开启调度SyncLane, ensureRootIsScheduled 进入syncLane优先级更新逻辑，在react18都是concurrent模式，会进入scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))，把回调函数放入syncQueue队列当中')
+    console.error('第五步：开启调度SyncLane, ensureRootIsScheduled 进入syncLane优先级更新逻辑，在react18都是concurrent模式，会进入scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root))，把回调函数放入syncQueue队列当中', root.tag)
     if (root.tag === LegacyRoot) {
       if (__DEV__ && ReactCurrentActQueue.isBatchingLegacy !== null) {
         ReactCurrentActQueue.didScheduleLegacyUpdate = true;
@@ -835,12 +837,15 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
         ReactCurrentActQueue.current.push(flushSyncCallbacks);
       } else {
         //这里scheduleMicrotask类似promise.resolve(null).then(() => {})
+        console.log('派发微任务-executionContext空时flushSyncCallbacks', executionContext)
         scheduleMicrotask(() => {
           // In Safari, appending an iframe forces microtasks to run.
           // https://github.com/facebook/react/issues/22459
           // We don't support running callbacks in the middle of render
           // or commit so we need to check against that.
           // 等待事件回调(原生事件的回调函数)函数触发完成以后才会进入flushSyncCallbacks刷新事件回调函数增加的更新queue
+          console.log('执行微任务-executionContext空时flushSyncCallbacks', executionContext === NoContext)
+          // renderContext不走这
           if (executionContext === NoContext) {
             console.log(`
               当当前任务的优先级为最高优先级SyncLane也就是1的时候，会将任务performSyncWorkOnRoot放在一个队列里面，然后判断当前环境支不支持微任务
@@ -1293,10 +1298,12 @@ function performSyncWorkOnRoot(root) {
   }
 
   // 处理 passive effect（即触发 useEffect 的创建、销毁函数及其他同步任务）
+  console.log('处理 passive effect（即触发 useEffect 的创建、销毁函数及其他同步任务')
   flushPassiveEffects();
 
   let lanes = getNextLanes(root, NoLanes);
   // 如果没有需要处理的任务，直接返回
+  console.log('如果没有需要处理的任务，直接返回', !includesSomeLane(lanes, SyncLane))
   if (!includesSomeLane(lanes, SyncLane)) {
     // There's no remaining sync work left.
     ensureRootIsScheduled(root, now());
@@ -1388,6 +1395,7 @@ export function batchedUpdates<A, R>(fn: A => R, a: A): R {
   const prevExecutionContext = executionContext;
   executionContext |= BatchedContext;
   try {
+    // console.log('执行更新任务fn', fn)
     return fn(a);
   } finally {
     executionContext = prevExecutionContext;
@@ -1399,6 +1407,7 @@ export function batchedUpdates<A, R>(fn: A => R, a: A): R {
       !(__DEV__ && ReactCurrentActQueue.isBatchingLegacy)
     ) {
       resetRenderTimer();
+      // console.log('batchedUpdates')
       flushSyncCallbacksOnlyInLegacyMode();
     }
   }
@@ -1433,6 +1442,7 @@ declare function flushSync<R>(fn: () => R): R;
 declare function flushSync(): void;
 // eslint-disable-next-line no-redeclare
 export function flushSync(fn) {
+  console.log('flushSync进入：执行传入的回调函数，如果执行栈为空则同步执行任务队列')
   // In legacy mode, we flush pending passive effects at the beginning of the
   // next event, not at the end of the previous one.
   if (
@@ -1453,6 +1463,7 @@ export function flushSync(fn) {
     ReactCurrentBatchConfig.transition = null;
     setCurrentUpdatePriority(DiscreteEventPriority);
     if (fn) {
+      console.log('执行flushSync回调函数', fn)
       return fn();
     } else {
       return undefined;
@@ -1465,7 +1476,9 @@ export function flushSync(fn) {
     // Flush the immediate callbacks that were scheduled during this batch.
     // Note that this will happen even if batchedUpdates is higher up
     // the stack.
+    console.log('flushSync回调函数执行完，判断要不要清空任务队列', executionContext)
     if ((executionContext & (RenderContext | CommitContext)) === NoContext) {
+      console.log('flushSync：执行栈为空则同步执行任务队列 - flushSyncCallbacks')
       flushSyncCallbacks();
     }
   }
